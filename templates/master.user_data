@@ -1,0 +1,23 @@
+#cloud-config
+packages:
+ - nfs-utils
+ - rpcbind
+ - tcsh
+ - lapack
+ - blas
+ - python27-boto
+ - python27-jinja2
+
+write_files:
+  - content: |
+        {{config|jsonify}}
+    path: /tmp/config.json
+
+runcmd:
+ - sed -i -e'0,/enabled=0/{s/enabled=0/enabled=1/}' /etc/yum.repos.d/epel.repo
+ - yum -y install nco
+ - service rpcbind start
+ - service nfs start
+ - service nfslock start
+ - aws s3 cp s3://necofs/necofs.py /tmp/necofs.py
+ - python2.7 -u /tmp/necofs.py /tmp/config.json > /tmp/necofs.log
